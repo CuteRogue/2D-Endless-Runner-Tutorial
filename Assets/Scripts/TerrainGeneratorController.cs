@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,10 +8,10 @@ public class TerrainGeneratorController : MonoBehaviour
     public List<TerrainTemplateController> terrainTemplates;
     public float terrainTemplateWidth;
 
-    [Header("EarlyTemplate")]
-    public List<TerrainTemplateController> earlyTerrain;
+    [Header("Force Early Template")]
+    public List<TerrainTemplateController> earlyTerrainTemplates;
 
-    [Header("GeneratorArea")]
+    [Header("Generator Area")]
     public Camera gameCamera;
     public float areaStartOffset;
     public float areaEndOffset;
@@ -21,12 +21,12 @@ public class TerrainGeneratorController : MonoBehaviour
     private float lastGeneratedPositionX;
     private float lastRemovedPositionX;
 
-    private const float debugLineWidth = 10.0f;
+    private const float debugLineHeight = 10.0f;
 
     // pool list
     private Dictionary<string, List<GameObject>> pool;
 
-    void Start()
+    private void Start()
     {
         // init pool
         pool = new Dictionary<string, List<GameObject>>();
@@ -36,8 +36,7 @@ public class TerrainGeneratorController : MonoBehaviour
         lastGeneratedPositionX = GetHorizontalPositionStart();
         lastRemovedPositionX = lastGeneratedPositionX - terrainTemplateWidth;
 
-        // forced early Template
-        foreach (TerrainTemplateController terrain in earlyTerrain)
+        foreach (TerrainTemplateController terrain in earlyTerrainTemplates)
         {
             GenerateTerrain(lastGeneratedPositionX, terrain);
             lastGeneratedPositionX += terrainTemplateWidth;
@@ -50,16 +49,15 @@ public class TerrainGeneratorController : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        if (lastGeneratedPositionX < GetHorizontalPositionEnd())
+        while (lastGeneratedPositionX < GetHorizontalPositionEnd())
         {
             GenerateTerrain(lastGeneratedPositionX);
             lastGeneratedPositionX += terrainTemplateWidth;
-        }
-
-        if (lastRemovedPositionX + terrainTemplateWidth < GetHorizontalPositionStart())
+        } 
+        
+        while (lastRemovedPositionX + terrainTemplateWidth < GetHorizontalPositionStart())
         {
             lastRemovedPositionX += terrainTemplateWidth;
             RemoveTerrain(lastRemovedPositionX);
@@ -76,20 +74,20 @@ public class TerrainGeneratorController : MonoBehaviour
         return gameCamera.ViewportToWorldPoint(new Vector2(1f, 0f)).x + areaEndOffset;
     }
 
-    private void GenerateTerrain(float posX, TerrainTemplateController item = null)
+    private void GenerateTerrain(float posX, TerrainTemplateController forceTerrain = null)
     {
         GameObject newTerrain = null;
 
-        if (item == null)
+        if (forceTerrain == null)
         {
             newTerrain = GenerateFromPool(terrainTemplates[Random.Range(0, terrainTemplates.Count)].gameObject, transform);
         }
         else
         {
-            newTerrain = GenerateFromPool(item.gameObject, transform);
+            newTerrain = GenerateFromPool(forceTerrain.gameObject, transform);
         }
 
-        newTerrain.transform.position = new Vector2(posX, 0.0f);
+        newTerrain.transform.position = new Vector2(posX, 0f);
 
         spawnedTerrain.Add(newTerrain);
     }
@@ -108,6 +106,7 @@ public class TerrainGeneratorController : MonoBehaviour
             }
         }
 
+        // after found;
         if (terrainToRemove != null)
         {
             spawnedTerrain.Remove(terrainToRemove);
@@ -131,7 +130,7 @@ public class TerrainGeneratorController : MonoBehaviour
         }
         else
         {
-            // if item list not defined, create a new one
+            // if item list not defined, create new one
             pool.Add(item.name, new List<GameObject>());
         }
 
@@ -140,19 +139,20 @@ public class TerrainGeneratorController : MonoBehaviour
         newItem.name = item.name;
         return newItem;
     }
-
+    
     private void ReturnToPool(GameObject item)
     {
         if (!pool.ContainsKey(item.name))
         {
-            Debug.LogError("INVALID POOL ITEM!!!");
+            Debug.LogError("INVALID POOL ITEM!!");
         }
 
         pool[item.name].Add(item);
         item.SetActive(false);
     }
 
-    public void OnDrawGizmos()
+    // debug
+    private void OnDrawGizmos()
     {
         Vector3 areaStartPosition = transform.position;
         Vector3 areaEndPosition = transform.position;
@@ -160,7 +160,7 @@ public class TerrainGeneratorController : MonoBehaviour
         areaStartPosition.x = GetHorizontalPositionStart();
         areaEndPosition.x = GetHorizontalPositionEnd();
 
-        Debug.DrawLine(areaStartPosition + Vector3.up * debugLineWidth / 2, areaStartPosition + Vector3.down * debugLineWidth / 2, Color.yellow);
-        Debug.DrawLine(areaEndPosition + Vector3.up * debugLineWidth / 2, areaEndPosition + Vector3.down * debugLineWidth / 2, Color.yellow);
+        Debug.DrawLine(areaStartPosition + Vector3.up * debugLineHeight / 2, areaStartPosition + Vector3.down * debugLineHeight / 2, Color.red);
+        Debug.DrawLine(areaEndPosition + Vector3.up * debugLineHeight / 2, areaEndPosition + Vector3.down * debugLineHeight / 2, Color.red);
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,26 +19,26 @@ public class CharacterMoveController : MonoBehaviour
     public ScoreController score;
     public float scoringRatio;
 
-    [Header("Game Over")]
-    public float fallPositionY;
+    [Header("GameOver")]
     public GameObject gameOverScreen;
+    public float fallPositionY;
 
     [Header("Camera")]
-    public CameraMoveController cameraController;
+    public CameraMoveController gameCamera;
 
     private Rigidbody2D rig;
-    private Animator animator;
+    private Animator anim;
     private CharacterSoundController sound;
 
-    private bool isOnGround;
     private bool isJumping;
+    private bool isOnGround;
 
     private float lastPositionX;
 
     private void Start()
     {
         rig = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
+        anim = GetComponent<Animator>();
         sound = GetComponent<CharacterSoundController>();
 
         lastPositionX = transform.position.x;
@@ -46,6 +46,40 @@ public class CharacterMoveController : MonoBehaviour
 
     private void Update()
     {
+        // read input
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (isOnGround)
+            {
+                isJumping = true;
+
+                sound.PlayJump();
+            }
+        }
+
+        // change animation
+        anim.SetBool("isOnGround", isOnGround);
+
+        // calculate score
+        int distancePassed = Mathf.FloorToInt(transform.position.x - lastPositionX);
+        int scoreIncrement = Mathf.FloorToInt(distancePassed / scoringRatio);
+
+        if (scoreIncrement > 0)
+        {
+            score.IncreaseCurrentScore(scoreIncrement);
+            lastPositionX += distancePassed;
+        }
+
+        // game over
+        if (transform.position.y < fallPositionY)
+        {
+            GameOver();
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        // raycast ground
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundRaycastDistance, groundLayerMask);
         if (hit)
         {
@@ -59,39 +93,7 @@ public class CharacterMoveController : MonoBehaviour
             isOnGround = false;
         }
 
-        // change animation
-        animator.SetBool("isOnGround", isOnGround);
-
-        // read input
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (isOnGround)
-            {
-                isJumping = true;
-
-                sound.PlayJump();
-            }
-        }
-
-        // calculate score
-        int distancePassed = Mathf.FloorToInt(transform.position.x - lastPositionX);
-        int scoreIncrement = Mathf.FloorToInt(distancePassed / scoringRatio);
-
-        if (scoreIncrement > 0)
-        {
-            score.IncreaseCurrentScore(scoreIncrement);
-            lastPositionX += distancePassed;
-        }
-
-        // gameover
-        if (transform.position.y < fallPositionY)
-        {
-            GameOver();
-        }
-    }
-
-    private void FixedUpdate()
-    {
+        // calculate velocity vector
         Vector2 velocityVector = rig.velocity;
 
         if (isJumping)
@@ -107,18 +109,21 @@ public class CharacterMoveController : MonoBehaviour
 
     private void GameOver()
     {
+        // set high score
         score.FinishScoring();
 
-        cameraController.enabled = false;
+        // stop camera movement
+        gameCamera.enabled = false;
 
+        // show gameover
         gameOverScreen.SetActive(true);
 
+        // disable this too
         this.enabled = false;
     }
 
     private void OnDrawGizmos()
     {
-        // raycast visualization
-        Debug.DrawLine(transform.position, transform.position + (Vector3.down * groundRaycastDistance), Color.red);
+        Debug.DrawLine(transform.position, transform.position + (Vector3.down * groundRaycastDistance), Color.white);
     }
 }

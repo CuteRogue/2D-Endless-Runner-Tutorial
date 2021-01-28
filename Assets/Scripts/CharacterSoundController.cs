@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,7 +8,7 @@ public class CharacterSoundController : MonoBehaviour
 
     private AudioSource audioPlayer;
 
-    public void Start()
+    private void Start()
     {
         audioPlayer = GetComponent<AudioSource>();
     }

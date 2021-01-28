@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +8,7 @@ public class ScoreController : MonoBehaviour
 
     private void Start()
     {
+        // reset
         currentScore = 0;
     }
 
@@ -23,6 +24,7 @@ public class ScoreController : MonoBehaviour
 
     public void FinishScoring()
     {
+        // set high score
         if (currentScore > ScoreData.highScore)
         {
             ScoreData.highScore = currentScore;
