@@ -400,6 +400,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   jump: {fileID: 8300000, guid: 8fe68541bb3e1e2498420429a8da2fbd, type: 3}
+  scoreHighlight: {fileID: 8300000, guid: 4fc75be76594af346810783a53d27ae4, type: 3}
 --- !u!82 &228668442
 AudioSource:
   m_ObjectHideFlags: 0
@@ -604,6 +605,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b0d5d425c9e83e478c33ad356c842c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  scoreHighlightRange: 50
+  sound: {fileID: 228668441}
 --- !u!4 &299251578
 Transform:
   m_ObjectHideFlags: 0
